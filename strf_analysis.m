@@ -9,12 +9,10 @@
 
 % load data_for_Shannon.mat
 
-function [STRF1, STRF2]= strf_analysis(data, paramfile, sprfile)
+function [STRF1, STRF2]= strf_analysis(data_folder, paramfile, sprfile,triggerfile)
+spc = loadKSdir(myKsDir); %uses spikes KS2 folder data load procedure
+load(fullfile('z:\francisco\triggers', trigger_file));%trigger files are saved at z:\francisco\triggers
 
-load(data);
-
-% Data must include TrigA, TrigB, and rez_merged which should be variables
-% in workspace after loading data in
 if (exist('TrigA', 'var') ~= 1)
     error('Data must include TrigA')
 elseif (exist('TrigB', 'var') ~= 1)
@@ -25,19 +23,14 @@ end
 
 fs=24414.0625;
 block=2;
-% paramfile= '/Users/shannon1/Documents/S19/Cohen_research/STRF/Moving_Ripple_generation/DNR_Cortex_96k5min_param.mat';
 
 result = load(paramfile);
 
 warning('off','MATLAB:interp1:UsePCHIP')
-% sprfile='/Users/shannon1/Documents/S19/Cohen_research/STRF/Moving_Ripple_generation/DNR_Cortex_96k5min.spr';
 s_bin=0.15;
 cs=1;
-
-% myKsDir='C:\work\ToSort_Sam\SAM-190503_b2_xpz5AL';
-% spikes = loadKSdir(myKsDir);
-spikes=rez_merged.st3;
-index_clusters=unique(spikes(:,5));
+%spikes=rez_merged.st3;
+index_clusters=unique(sp.clu);
 conta=1;
 
 % initialize array of params
@@ -64,10 +57,10 @@ RDUpperCutoff_params = zeros(379, 1);
 PeakBF_params = zeros(379, 1);
 save_strf = '';
 for s=1:length(index_clusters)
-    index_temp=find(spikes(:,5)==index_clusters(s));
-    spet=spikes(index_temp,1);
+    index_temp=find(sp.clu==index_clusters(s));
+    spet=sp.st(index_temp)*fs; %#ok<FNDSB>
     cluster_number=index_clusters(s);
-        try
+           try
             [taxis,faxis,STRF1A,STRF2A,PP,Wo1A,Wo2A,No1A,No2A,SPLN]=rtwstrfdbint(sprfile,0,s_bin,spet',TrigA,fs,80,30,'dB','MR',1700,5,'float');
         catch me
         %disp(me);
